@@ -32,3 +32,11 @@ S4 = (5)/(s + 25);
 ssS4 = ss(S4);
 ssZ4 = c2d(ssS4, Ts);
 
+% parte 2
+
+sys1 = (ssZ1 + ssZ2)*(ssZ3);
+sys_total = feedback(sys1,ssZ4);
+
+% parte 3
+
+ctrb(sys_total.A, sys_total.B); 
