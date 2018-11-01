@@ -15,8 +15,3 @@ t = 0.15;
 
 sim('PI1GDL',[0,Tf]);
 
-planta = k/(T*s + 1);
-
-planta_dis = c2d(planta, Ts, 'zoh');
-
-
