@@ -1,22 +1,18 @@
 clc;
 clear all;
-
-% Tiempo de muestreo y simulaci√≥n
-Ts = 0.1;
-Tf = 120;
-
-s = tf('s');
-z = tf('z', Ts);
-
+%% Se definen par·metros
 k = 9.22;
 T = 34.31;
 L = 3.17;
 t = 0.15;
+P = 1/(k*(t+(L/T)));
+I = 1/(T);
 
-sim('PI1GDL',[0,Tf]);
-
-planta = k/(T*s + 1);
-
-planta_dis = c2d(planta, Ts, 'zoh');
-
-
+%% Se grafica Bode con m·rgenes de ganancia
+s = tf('s');
+C = P*(1+(I/s));
+P = k*(exp(-L*s))/(T*s+1);
+L1 = C*P;
+figure;
+margin(L1);
+grid on;
