@@ -1,21 +1,16 @@
 clc;
 clear all;
-%% Se definen par√°metros
-Ts = 0.1;
-Tf = 60;
+%% Se definen par·metros
 k = 9.22;
 T = 34.31;
 L = 3.17;
 t = 0.15;
-P = 1/(k*(t+(L/T)));
+H = 1/(k*(t+(L/T)));
 I = 1/(T);
 
-sim('PI1GDL', Tf);
-sim('PI1GDL_Z', Tf);
-
-%% Se grafica Bode con m√°rgenes de ganancia
+%% Se grafica Bode con m·rgenes de ganancia
 s = tf('s');
-C = P*(1+(I/s));
+C = H*(1+(I/s));
 P = k*(exp(-L*s))/(T*s+1);
 L1 = C*P;
 figure;
