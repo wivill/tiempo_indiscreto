@@ -8,7 +8,7 @@
  * https://github.com/arkhipenko/TaskScheduler
  */
 #include "Arduino.h"
-#include <TaskScheduler.h> //Se carga la librería del Scheduler
+#include <../lib/TaskScheduler.h> //Se carga la librería del Scheduler
 Scheduler RealTimeCore; //Esto crea un objeto del tipo Scheduler (definido por
 // la librería). En este caso, el objeto se llama RealTimeCore, pero se puede
 // poner cualquier nombre
