@@ -16,6 +16,14 @@ I = 1/(T);
 sim('PI1GDL', Tf);
 sim('PI1GDL_Z', Tf);
 
+figure(1)
+grid on
+hold on
+title('Salida del sistema continuo y discreto')
+plot(Y1)
+plot(Y1_Z)
+legend('Continuo', 'Discreto')
+
 %% Se definen par�metros del controlador de 2GDL
 tc = 0.2;
 to = L/T;
