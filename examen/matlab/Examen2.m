@@ -49,10 +49,10 @@ plot(Y_alfaro_est, '--')
 plot(Y_alfaro_soft)
 plot(Y2)
 plot(D_SA)
-% plot(SP_SA)
+plot(SP_SA)
 ylabel('Amplitud')
 xlabel('Tiempo T/(s)')
-legend('Sintonización analítica', 'Alfaro estricto', 'Alfaro suave', '2GDL analítico', 'Perturbación')
+legend('Sintonización analítica', 'Alfaro estricto', 'Alfaro suave', '2GDL analítico', 'Perturbación', 'Referencia')
 title('Comparación de salida entre controladores')
 hold off
 
@@ -79,10 +79,10 @@ plot(Y_alfaro_est_Z, '--')
 plot(Y_alfaro_soft_Z)
 plot(Y2_Z)
 plot(D_SA_Z)
-% plot(SP_SA)
+plot(SP_SA)
 ylabel('Amplitud')
 xlabel('Tiempo T/(s)')
-legend('Sintonización analítica', 'Alfaro estricto', 'Alfaro suave', '2GDL analítico', 'Perturbación')
+legend('Sintonización analítica', 'Alfaro estricto', 'Alfaro suave', '2GDL analítico', 'Perturbación', 'referencia')
 title('Comparación de salida entre controladores discretizados')
 hold off
 
@@ -207,3 +207,22 @@ title('Diagrama de fase para Ms con PI 2GDL')
 % fc_fragility_rings(Kp,Ti,0,P)
 % grid on
 % title('Fragilidad con PI 2GDL')
+
+%% Medición de IAE
+
+sim('IAE', Tf);
+
+figure(21)
+grid on
+hold on
+plot(Y_alfaro_est, 'black')
+plot(Y_alfaro_est_Z, '--')
+plot(D_SA)
+plot(SP_SA)
+ylabel('Amplitud')
+xlabel('Tiempo T/(s)')
+legend('Alfaro estricto', 'Alfaro estricto discreto', 'Perturbación', 'Referencia')
+title('Comparación de salida entre controlador continuo y discreto, sintonización Control Estricto, Ts = 0.1 s')
+hold off
+
+IAE_Elegido
