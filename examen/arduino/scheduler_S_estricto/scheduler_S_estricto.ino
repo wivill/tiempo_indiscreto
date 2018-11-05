@@ -29,12 +29,12 @@ float Y = 0.0;    // Salida de la Planta
 float Y_ant = 0.0;
 
 // Parametros PID
-const float kp = 0.0;  
-const float ti = 0.0;
+const float kp = 0.6691;  
+const float ti = 0.0291;
 const float td = 0.0;
 const float ts = 0.1;     // Tiempo de Muestreo (s)
 const float alpha = 0.0;
-const float Beta = 0.0;   
+const float Beta = 1.0;   
 
 float I_ant = 0.0; 
 float D_ant = 0.0;
