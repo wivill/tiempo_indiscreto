@@ -21,6 +21,7 @@ void Task_ReadSensor();
 void PrintFun();
 
 
+//bool Boton = false;
 int Boton = 0;
 int M = 0.0;      // Variable que maneja el Potenciometro para control Manual
 int sp = 0;    // Set Point
@@ -62,17 +63,11 @@ Task Print_Datos(2000, TASK_FOREVER, &PrintFun, &RealTimeCore);
 void Task_LeerPotM(){
   M = analogRead(A4);
   M = map(M,217,1023,0,100);
-  //Serial.print("Señal Manual: ");
-  //Serial.print(M);
-//Serial.print("\n");
 }
 
 void Task_LeerPotA(){
   sp = analogRead(A5);
-  sp = map(sp,220,1023,0,100);  
-//  Serial.print("Señal Set Point: ");
-//  Serial.print(sp);
-//  Serial.print("\n");
+  sp = map(sp,220,1023,0,100);
 }
 
 void Task_ReadSensor(){
@@ -95,11 +90,10 @@ void Task_Action(){
   }    
   U = 0;
   U_pwm = 0;
-  if(Boton <= 10){
- //   Serial.print("Modo Manual \n");
+  if(Boton <= 300){
     U_pwm = map(M,0,100,0,255);
   }
-  else if(Boton == 1023){
+  else if(Boton >= 900){
     float error = 0;
     Y_ant = Y;
    // Serial.print("Modo Automatico \n");
@@ -111,33 +105,41 @@ void Task_Action(){
     D_ant = D; 
     U = P+I+D;
     if(U>=255){
+      U = 255;
       U_pwm = int(U);
-     // U_pwm = map(U,0,1023,0,255);
-      analogWrite(0,U_pwm);
     }
     else if(U<=0){
+      U = 0;
+      U_pwm = int(U);    
+    }
+    else{
       U_pwm = int(U);
-      //U_pwm = map(U,0,1023,0,255);     
     }
   }
   analogWrite(13,U_pwm);
-//  Serial.print("Señal de control: ");
-//  Serial.print(U_pwm);
-//  Serial.print("\n");
 }
 
 void tarea03Fun(){
-  Boton = analogRead(A3);   
+  Boton = analogRead(A3);
 }
 
 void PrintFun(){
  Serial.print("------------------------------------------");
   Serial.print("\n");
- if(Boton == 1023){ 
-    Serial.print("Modo Aumatico: "); 
+ if(Boton >= 900){ 
+    Serial.print("Modo Aumatico: ");
+    Serial.print("\n"); 
+    Serial.print("Boton: ");
+    Serial.print(Boton);
+    Serial.print("\n");     
   }
  else{
   Serial.print("Modo Manual: ");
+  Serial.print("\n");
+  Serial.print("Boton: ");
+  Serial.print(Boton);
+  Serial.print("\n"); 
+  
  }
  Serial.print("\n");
  Serial.print("Señal Manual: ");
@@ -156,8 +158,9 @@ void PrintFun(){
  Serial.print("\n");
 }
 void setup() {
-  pinMode(A0, OUTPUT);
+  pinMode(13, OUTPUT);
   pinMode(A1, INPUT);
+  pinMode(A3, INPUT);
   
   // El código que se ponga acá se ejecuta una única vez al inicio:
   Serial.begin(9600); //se inicia la comunicación serial a 9600 bauds
