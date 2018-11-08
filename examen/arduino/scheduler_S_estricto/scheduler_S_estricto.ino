@@ -64,32 +64,36 @@ Task Print_Datos(2000, TASK_FOREVER, &PrintFun, &RealTimeCore);
 // Esta función se encarga de leer el valor del potenciómetro Manual
 void Task_LeerPotM(){
   M = analogRead(A4);
-  M = map(M,217,1023,0,100);
+//  M = map(M,217,1023,0,100);
+  M = map(M,0,1023,0,100);
 }
 
 void Task_LeerPotA(){
   sp = analogRead(A5);
-  sp = map(sp,220,1023,0,100);
+//  sp = map(sp,220,1023,0,100);
+  sp = map(sp,0,1023,0,100);
 }
 
 void Task_ReadSensor(){
   Y = analogRead(A1);
-  if(Y<=204){
-    Y = 0.0;
-  }
-  Y = map(Y,204,1023,0,100);
+  Y = map(Y,0,1023,0,100);
+//  if(Y<=204){
+//    Y = 0.0;
+//  }
+//  Y = map(Y,204,1023,0,100);
   Serial.print("Señal Sensor: ");
   Serial.print(Y);
 }
 
 void Task_Action(){ 
   Y = analogRead(A1);
-  if(Y<=204){
-    Y = 0.0;
-  }
-  else{  
-    Y = map(Y,204,1023,0,100);
-  }    
+  Y = map(Y,0,1023,0,100);
+//  if(Y<=204){
+//    Y = 0.0;
+//  }
+//  else{  
+//    Y = map(Y,204,1023,0,100);
+//  }    
   U = 0;
   U_pwm = 0;
   if(Boton <= 300){
@@ -138,19 +142,15 @@ void PrintFun(){
  if(Boton >= 900){ 
     Serial.print("Modo Aumatico: ");
     Serial.print("\n"); 
-    Serial.print("Boton: ");
-    Serial.print(Boton);
-    Serial.print("\n");
-    Serial.print(led);
+//    Serial.print("Boton: ");
+//    Serial.print(Boton);
     Serial.print("\n");     
   }
  else{
   Serial.print("Modo Manual: ");
   Serial.print("\n");
-  Serial.print("Boton: ");
-  Serial.print(Boton);
-  Serial.print("\n");
-  Serial.print(led);
+//  Serial.print("Boton: ");
+//  Serial.print(Boton);
   Serial.print("\n"); 
   
  }
