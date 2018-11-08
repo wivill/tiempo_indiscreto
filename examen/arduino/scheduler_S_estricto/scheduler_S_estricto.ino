@@ -14,8 +14,9 @@ Scheduler RealTimeCore; //Esto crea un objeto del tipo Scheduler (definido por l
 // Se deben definir los prototipos de las funciones de cada una de las tareas, en este caso se definen tres funciones. En inglés es lo que se llaman Callbacks. Se puede poner el nombre que quiera.
 void Task_LeerPotM();
 void Task_LeerPotA();
-void tarea03Fun();
+//void tarea03Fun();
 
+void Task_Boton();
 void Task_Action();
 void Task_ReadSensor();
 void PrintFun();
@@ -53,7 +54,7 @@ int U_pwm = 0.0;
 // Acá se crean las tareas. Las tareas son objetos del tipo Task definidos por la librería:
 Task Task_LeerM(200, TASK_FOREVER, &Task_LeerPotM, &RealTimeCore); //Tarea que se repite cada 1000 milisegundos indefinidamente
 Task Task_LeerSP(200, TASK_FOREVER, &Task_LeerPotA, &RealTimeCore); //Tarea que se repite cada 3000 milisegundos indefinidamente
-Task Task_LeerBoton(500, TASK_FOREVER, &tarea03Fun, &RealTimeCore); //Tarea que se repite sólo tres veces cada 5000 milisegundos
+Task Task_LeerBoton(500, TASK_FOREVER, &Task_Boton, &RealTimeCore); //Tarea que se repite sólo tres veces cada 5000 milisegundos
 Task Action_PID(100, TASK_FOREVER, &Task_Action, &RealTimeCore); // Tarea para accion del PID 
 Task Print_Datos(2000, TASK_FOREVER, &PrintFun, &RealTimeCore); 
 
@@ -119,7 +120,7 @@ void Task_Action(){
   analogWrite(13,U_pwm);
 }
 
-void tarea03Fun(){
+void Task_Boton(){
   Boton = analogRead(A3);
 }
 

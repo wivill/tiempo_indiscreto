@@ -1,0 +1,5 @@
+{
+    "sketch": "scheduler_S_estricto.ino",
+    "board": "arduino:avr:uno",
+    "port": "COM3"
+}
