@@ -24,6 +24,7 @@ void PrintFun();
 
 //bool Boton = false;
 int Boton = 0;
+int led = 8;
 int M = 0.0;      // Variable que maneja el Potenciometro para control Manual
 int sp = 0;    // Set Point
 
@@ -122,6 +123,13 @@ void Task_Action(){
 
 void Task_Boton(){
   Boton = analogRead(A3);
+//  Boton = digitalRead(0);
+  if (Boton >= 1000) {
+    digitalWrite(led, HIGH);
+  } else{
+    digitalWrite(led, LOW);
+  }
+  
 }
 
 void PrintFun(){
@@ -132,6 +140,8 @@ void PrintFun(){
     Serial.print("\n"); 
     Serial.print("Boton: ");
     Serial.print(Boton);
+    Serial.print("\n");
+    Serial.print(led);
     Serial.print("\n");     
   }
  else{
@@ -139,6 +149,8 @@ void PrintFun(){
   Serial.print("\n");
   Serial.print("Boton: ");
   Serial.print(Boton);
+  Serial.print("\n");
+  Serial.print(led);
   Serial.print("\n"); 
   
  }
@@ -162,6 +174,8 @@ void setup() {
   pinMode(13, OUTPUT);
   pinMode(A1, INPUT);
   pinMode(A3, INPUT);
+  pinMode(0, INPUT);
+  pinMode(led, OUTPUT);
   
   // El código que se ponga acá se ejecuta una única vez al inicio:
   Serial.begin(9600); //se inicia la comunicación serial a 9600 bauds
@@ -186,4 +200,6 @@ void setup() {
 void loop() {
   // Acá va el código que se repite indefinidamente:
   RealTimeCore.execute(); // Cuando se usa un scheduler, esta instrucción es la única que debería estar en el loop
+//  Boton = digitalRead(0);
+//  digitalWrite(led, Boton);
 }
