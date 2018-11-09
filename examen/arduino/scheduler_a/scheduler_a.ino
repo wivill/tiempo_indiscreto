@@ -40,6 +40,7 @@ const float Beta = 1.0;
 float I_ant = 0.0; 
 float D_ant = 0.0;
 float error = 0.0;
+float error_ante = 0.0;
 
 float P = 0.0;
 float I = 0.0;
@@ -88,14 +89,16 @@ void Task_Action(){
   }
   else if(Boton >= 300){
     Y_ant = Y;
-    error = Beta*sp-Y;      // 0< Sp y Y< 100 
+    error = Beta*sp - Y;      // 0< Sp y Y< 100 
     P = kp*(error);
-    I = I_ant + (kp*(ts/ti))*error;
+    // I = I_ant + (kp*(ts/ti))*(error - error_ante);
+    I = I_ant + (kp*(ts/ti))*(error);
     I_ant = I;
     // D = ((alpha*td)/(alpha*td + ts))*D_ant - ((kp*td)/(alpha*td+ts))*(Y-Y_ant);
     // D_ant = D; 
     // U = P+I+D;
-    U = P+I;
+    U = P + I;
+    // error_ante = error;
     if(U>=255){
       U = 255;
       U_pwm = int(U);
