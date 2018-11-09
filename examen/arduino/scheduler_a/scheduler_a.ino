@@ -18,11 +18,9 @@ void Task_LeerPotA();
 
 void Task_Boton();
 void Task_Action();
-void Task_ReadSensor();
+// void Task_ReadSensor();
 void PrintFun();
 
-
-//bool Boton = false;
 int Boton = 0;
 int led = 8;
 int M = 0.0;      // Variable que maneja el Potenciometro para control Manual
@@ -32,7 +30,7 @@ float Y = 0.0;    // Salida de la Planta
 float Y_ant = 0.0;
 
 // Parametros PID
-const float kp = 0.6691;  
+const float kp = 0.4696;  
 const float ti = 0.0291;
 const float td = 0.0;
 const float ts = 0.1;     // Tiempo de Muestreo (s)
@@ -41,7 +39,7 @@ const float Beta = 1.0;
 
 float I_ant = 0.0; 
 float D_ant = 0.0;
-
+float error = 0.0;
 
 float P = 0.0;
 float I = 0.0;
@@ -59,7 +57,6 @@ Task Task_LeerSP(200, TASK_FOREVER, &Task_LeerPotA, &RealTimeCore); //Tarea que 
 Task Task_LeerBoton(500, TASK_FOREVER, &Task_Boton, &RealTimeCore); //Tarea que se repite sólo tres veces cada 5000 milisegundos
 Task Action_PID(100, TASK_FOREVER, &Task_Action, &RealTimeCore); // Tarea para accion del PID 
 Task Print_Datos(2000, TASK_FOREVER, &PrintFun, &RealTimeCore); 
-
 // Ahora se deben definir explícitamente las funciones
 
 // Esta función se encarga de leer el valor del potenciómetro Manual
@@ -73,32 +70,32 @@ void Task_LeerPotA(){
   sp = map(sp,0,1023,0,100);
 }
 
-void Task_ReadSensor(){
-  Y = analogRead(A1);
-  Y = map(Y,0,1023,0,100);
-  Serial.print("Señal Sensor: ");
-  Serial.print(Y);
-  Serial.print("\n");
-}
+// void Task_ReadSensor(){
+//   Y = analogRead(A1);
+//   Y = map(Y,0,1023,0,100);
+//   Serial.print("Señal Sensor: ");
+//   Serial.print(Y);
+//   Serial.print("\n");
+// }
 
 void Task_Action(){ 
   Y = analogRead(A1);
   Y = map(Y,0,1023,0,100);
   U = 0;
   U_pwm = 0;
-  if(Boton <= 300){
+  if(Boton <= 900){
     U_pwm = map(M,0,100,0,255);
   }
-  else if(Boton >= 900){
-    float error = 0;
+  else if(Boton >= 300){
     Y_ant = Y;
     error = Beta*sp-Y;      // 0< Sp y Y< 100 
     P = kp*(error);
-    I = I_ant+(kp*ts/ti)*error;
+    I = I_ant + (kp*(ts/ti))*error;
     I_ant = I;
-    D = ((alpha*td)/(alpha*td + ts))*D_ant - ((kp*td)/(alpha*td+ts))*(Y-Y_ant);
-    D_ant = D; 
-    U = P+I+D;
+    // D = ((alpha*td)/(alpha*td + ts))*D_ant - ((kp*td)/(alpha*td+ts))*(Y-Y_ant);
+    // D_ant = D; 
+    // U = P+I+D;
+    U = P+I;
     if(U>=255){
       U = 255;
       U_pwm = int(U);
@@ -176,7 +173,7 @@ void setup() {
   RealTimeCore.addTask(Task_LeerBoton); //Se agrega la tarea 03 al scheduler
   RealTimeCore.addTask(Action_PID); // Se agrega la tarea de Accion al scheduler
   RealTimeCore.addTask(Print_Datos); // Se agrega la tarea de Accion al scheduler
-  RealTimeCore.addTask(Task_ReadSensor);
+  // RealTimeCore.addTask(Task_ReadSensor);
 
   Serial.println("Se agregaron las tareas al Scheduler");
   Task_LeerM.enable(); // Se pone el flag de enable para la tarea 01. Por default, las tareas están desabilitadas
@@ -184,7 +181,7 @@ void setup() {
   Task_LeerBoton.enable();// 
   Action_PID.enable(); // Activo 
   Print_Datos.enable();
-  Task_ReadSensor.enable();
+  // Task_ReadSensor.enable();
 }
 
 void loop() {
