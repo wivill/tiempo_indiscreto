@@ -51,6 +51,7 @@ float U = 0.0;
 float U_ant = 0.0;
 int U_pwm = 0.0;
 
+unsigned long t_final, t_inicial;
 
 // Acá se crean las tareas. Las tareas son objetos del tipo Task definidos por la librería:
 Task Task_LeerM(200, TASK_FOREVER, &Task_LeerPotM, &RealTimeCore); //Tarea que se repite cada 1000 milisegundos indefinidamente
@@ -85,7 +86,8 @@ void Task_ReadSensor(){
   Serial.print(Y);
 }
 
-void Task_Action(){ 
+void Task_Action(){
+  // t_inicial = millis(); 
   Y = analogRead(A1);
   Y = map(Y,0,1023,0,100);
 //  if(Y<=204){
@@ -123,6 +125,11 @@ void Task_Action(){
     }
   }
   analogWrite(13,U_pwm);
+  // t_final = millis();
+  // Serial.print("Tiempo = ");
+  // Serial.print("\n");
+  // Serial.print(t_final);
+  // Serial.print("\n");
 }
 
 void Task_Boton(){
