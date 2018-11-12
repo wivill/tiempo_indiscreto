@@ -1,4 +1,5 @@
 {
     "board": "arduino:avr:uno",
-    "sketch": "scheduler_a.ino"
+    "sketch": "scheduler_a.ino",
+    "port": "COM3"
 }
