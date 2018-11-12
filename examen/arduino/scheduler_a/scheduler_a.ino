@@ -1,30 +1,20 @@
-/*
- * Este programa sirve de plantilla para utilizar la librería
- * TaskScheduler en el curso IE0731: Sistemas en Tiempo discreto
- * 
- * Se recomienda revisar la documentación que está
- * en el sitio virtual del curso, junto con la librería.
- * El sitio donde el autor de la librería aloja el código es el siguiente:
- * https://github.com/arkhipenko/TaskScheduler
- */
 #include "Arduino.h"
 #include <TaskScheduler.h> //Se carga la librería del Scheduler
 Scheduler RealTimeCore; //Esto crea un objeto del tipo Scheduler (definido por la librería). En este caso, el objeto se llama RealTimeCore, pero se puede poner cualquier nombre
 
 // Se deben definir los prototipos de las funciones de cada una de las tareas, en este caso se definen tres funciones. En inglés es lo que se llaman Callbacks. Se puede poner el nombre que quiera.
-void Task_LeerPotM();
-void Task_LeerPotA();
-//void tarea03Fun();
-
-void Task_Boton();
+void Task_LeerPotX();
+void Task_LeerPotSP();
+void Task_M();
 void Task_Action();
-// void Task_ReadSensor();
 void PrintFun();
 
-int Boton = 0;
+int M = 0;
 int led = 8;
-int M = 0.0;      // Variable que maneja el Potenciometro para control Manual
+int X = 0.0;      // Variable que maneja el Potenciometro para control Manual
 int sp = 0;    // Set Point
+int sp_ant = 0;
+int U_pwm = 0.0;
 
 float Y = 0.0;    // Salida de la Planta
 float Y_ant = 0.0;
@@ -40,124 +30,96 @@ const float Beta = 1.0;
 float I_ant = 0.0; 
 float D_ant = 0.0;
 float error = 0.0;
-float error_ante = 0.0;
-
+float error_ant = 0.0;
 float P = 0.0;
 float I = 0.0;
 float D = 0.0;
-
 float U = 0.0;
 float U_ant = 0.0;
-int U_pwm = 0.0;
-
-unsigned long t_final, t_inicial;
 
 // Acá se crean las tareas. Las tareas son objetos del tipo Task definidos por la librería:
-Task Task_LeerM(200, TASK_FOREVER, &Task_LeerPotM, &RealTimeCore); //Tarea que se repite cada 1000 milisegundos indefinidamente
-Task Task_LeerSP(200, TASK_FOREVER, &Task_LeerPotA, &RealTimeCore); //Tarea que se repite cada 3000 milisegundos indefinidamente
-Task Task_LeerBoton(500, TASK_FOREVER, &Task_Boton, &RealTimeCore); //Tarea que se repite sólo tres veces cada 5000 milisegundos
+Task Task_LeerX(200, TASK_FOREVER, &Task_LeerPotX, &RealTimeCore); //Tarea que se repite cada 1000 milisegundos indefinidamente
+Task Task_LeerSP(200, TASK_FOREVER, &Task_LeerPotSP, &RealTimeCore); //Tarea que se repite cada 3000 milisegundos indefinidamente
+Task Task_LeerM(500, TASK_FOREVER, &Task_M, &RealTimeCore); //Tarea que se repite sólo tres veces cada 5000 milisegundos
 Task Action_PID(100, TASK_FOREVER, &Task_Action, &RealTimeCore); // Tarea para accion del PID 
 Task Print_Datos(2000, TASK_FOREVER, &PrintFun, &RealTimeCore); 
 // Ahora se deben definir explícitamente las funciones
 
 // Esta función se encarga de leer el valor del potenciómetro Manual
-void Task_LeerPotM(){
-  M = analogRead(A4);
-  M = map(M,0,1023,0,100);
+void Task_LeerPotX(){
+  X = analogRead(A4);
+  X = map(X, 0, 1023, 0, 100);
 }
 
-void Task_LeerPotA(){
+void Task_LeerPotSP(){
   sp = analogRead(A5);
-  sp = map(sp,0,1023,0,100);
+  sp = map(sp, 0, 1023, 0, 100);
 }
 
-// void Task_ReadSensor(){
-//   Y = analogRead(A1);
-//   Y = map(Y,0,1023,0,100);
-//   Serial.print("Señal Sensor: ");
-//   Serial.print(Y);
-//   Serial.print("\n");
-// }
-
-void Task_Action(){ 
-  Y = analogRead(A1);
-  Y = map(Y,0,1023,0,100);
-  U = 0;
-  U_pwm = 0;
-  if(Boton <= 900){
-    U_pwm = map(M,0,100,0,255);
-  }
-  else if(Boton >= 300){
-    Y_ant = Y;
-    error = Beta*sp - Y;      // 0< Sp y Y< 100 
-    P = kp*(error);
-    // I = I_ant + (kp*(ts/ti))*(error - error_ante);
-    I = I_ant + (kp*(ts/ti))*(error);
-    I_ant = I;
-    // D = ((alpha*td)/(alpha*td + ts))*D_ant - ((kp*td)/(alpha*td+ts))*(Y-Y_ant);
-    // D_ant = D; 
-    // U = P+I+D;
-    U = P + I;
-    // error_ante = error;
-    if(U>=255){
-      U = 255;
-      U_pwm = int(U);
-    }
-    else if(U<=0){
-      U = 0;
-      U_pwm = int(U);    
-    }
-    else{
-      U_pwm = int(U);
-    }
-  }
-  analogWrite(13,U_pwm);
-}
-
-void Task_Boton(){
-  Boton = analogRead(A3);
-  if (Boton >= 1000) {
+void Task_M(){
+  M = analogRead(A3);
+  if (M >= 1000) {
     digitalWrite(led, HIGH);
   } else{
     digitalWrite(led, LOW);
+  } 
+}
+
+void Task_Action(){ 
+  Y = analogRead(A1);
+  Y = map(Y, 0, 1023, 0, 100);
+  U = 0;
+  U_pwm = 0;
+  if(M <= 200){
+    U_pwm = map(X, 0, 100, 0, 255);
   }
-  
+  else if(M >= 950){
+    error = Beta*sp - Y;      // 0< Sp y Y< 100 
+    P = kp*(error);
+    I = I_ant + (kp*(ts/ti))*(error);
+    U = P + I;
+
+  if(U >= 1023){
+    //Sature a 1023 
+    U = 1023;
+    U_pwm = map(U, 0, 1023, 0, 255);
+    analogWrite(13, U_pwm);
+  }else if(U <= 0){
+    //Sature a 0 
+    U = 0;
+    U_pwm = map(U, 0, 1023, 0, 255);
+    analogWrite(13, U_pwm);
+  }else{
+    //Solo escriba
+    U_pwm = map(U, 0, 1023, 0, 255);
+    analogWrite(13, U_pwm);  
+  }
+
+  I_ant = I;
+  Y_ant = Y;
+  sp_ant = sp;
+  error_ant = error;
 }
 
 void PrintFun(){
- Serial.print("------------------------------------------");
-  Serial.print("\n");
- if(Boton >= 900){ 
-    Serial.print("Modo Aumatico: ");
-    Serial.print("\n"); 
-//    Serial.print("Boton: ");
-//    Serial.print(Boton);
-    Serial.print("\n");     
-  }
- else{
-  Serial.print("Modo Manual: ");
-  Serial.print("\n");
-//  Serial.print("Boton: ");
-//  Serial.print(Boton);
-  Serial.print("\n"); 
-  
+  Serial.print("------------------------------------------\n");
+  if(M >= 950){ 
+    Serial.print("Modo Aumatico: \n"); 
+  } else {
+    Serial.print("Modo Manual: \n"); 
  }
- Serial.print("\n");
- Serial.print("Señal Manual: ");
- Serial.print(M);
- Serial.print("\n");
- Serial.print("Set Point: ");
- Serial.print(sp);
- Serial.print("\n");
- Serial.print("Salida de Planta: ");
- Serial.print(Y);
- Serial.print("\n");
- Serial.print("Señal de Control: ");
- Serial.print(U_pwm);
- Serial.print("\n");
- //Serial.print("-------------------------------------------");
- Serial.print("\n");
+
+  Serial.print("\nSeñal Manual: ");
+  Serial.print(X);
+  Serial.print("\nSet Point: ");
+  Serial.print(sp);
+  Serial.print("\nSalida de Planta: ");
+  Serial.print(Y);
+  Serial.print("\nSeñal de Control: ");
+  Serial.print(U_pwm);
+  Serial.print("\n");
 }
+
 void setup() {
   pinMode(13, OUTPUT);
   pinMode(A1, INPUT);
@@ -171,25 +133,20 @@ void setup() {
   
   Serial.println("Se inicializo el Scheduler");
   
-  RealTimeCore.addTask(Task_LeerM); //Se agrega la tarea 01 al scheduler
+  RealTimeCore.addTask(Task_LeerX); //Se agrega la tarea 01 al scheduler
   RealTimeCore.addTask(Task_LeerSP); //Se agrega la tarea 02 al scheduler
-  RealTimeCore.addTask(Task_LeerBoton); //Se agrega la tarea 03 al scheduler
+  RealTimeCore.addTask(Task_LeerM); //Se agrega la tarea 03 al scheduler
   RealTimeCore.addTask(Action_PID); // Se agrega la tarea de Accion al scheduler
   RealTimeCore.addTask(Print_Datos); // Se agrega la tarea de Accion al scheduler
-  // RealTimeCore.addTask(Task_ReadSensor);
-
+ 
   Serial.println("Se agregaron las tareas al Scheduler");
-  Task_LeerM.enable(); // Se pone el flag de enable para la tarea 01. Por default, las tareas están desabilitadas
+  Task_LeerX.enable(); // Se pone el flag de enable para la tarea 01. Por default, las tareas están desabilitadas
   Task_LeerSP.enable(); // Se pone el flag de enable para la tarea 02. Por default, las tareas están desabilitadas
-  Task_LeerBoton.enable();// 
+  Task_LeerM.enable();// 
   Action_PID.enable(); // Activo 
   Print_Datos.enable();
-  // Task_ReadSensor.enable();
 }
 
 void loop() {
-  // Acá va el código que se repite indefinidamente:
   RealTimeCore.execute(); // Cuando se usa un scheduler, esta instrucción es la única que debería estar en el loop
-//  Boton = digitalRead(0);
-//  digitalWrite(led, Boton);
 }
