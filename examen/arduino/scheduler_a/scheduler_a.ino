@@ -20,10 +20,11 @@ float Y = 0.0;    // Salida de la Planta
 float Y_ant = 0.0;
 
 // Parametros PID
-const float kp = 0.4696;  
+const float kp = 0.4696 ;  
 const float ti = 0.0291;
+const float tt = 0.0146; // para antiwindup
 const float td = 0.0;
-const float ts = 0.1;     // Tiempo de Muestreo (s)
+const float ts = 0.01;     // Tiempo de Muestreo (s)
 const float alpha = 0.0;
 const float Beta = 1.0;   
 
@@ -35,14 +36,15 @@ float P = 0.0;
 float I = 0.0;
 float D = 0.0;
 float U = 0.0;
-float U_ant = 0.0;
+float U_antiw = 0.0;
+float antiw = 0.0;
 
 // Acá se crean las tareas. Las tareas son objetos del tipo Task definidos por la librería:
-Task Task_LeerX(200, TASK_FOREVER, &Task_LeerPotX, &RealTimeCore); //Tarea que se repite cada 1000 milisegundos indefinidamente
-Task Task_LeerSP(200, TASK_FOREVER, &Task_LeerPotSP, &RealTimeCore); //Tarea que se repite cada 3000 milisegundos indefinidamente
+//Task Task_LeerX(200, TASK_FOREVER, &Task_LeerPotX, &RealTimeCore); //Tarea que se repite cada 1000 milisegundos indefinidamente
+//Task Task_LeerSP(200, TASK_FOREVER, &Task_LeerPotSP, &RealTimeCore); //Tarea que se repite cada 3000 milisegundos indefinidamente
 Task Task_LeerM(500, TASK_FOREVER, &Task_M, &RealTimeCore); //Tarea que se repite sólo tres veces cada 5000 milisegundos
 Task Action_PID(100, TASK_FOREVER, &Task_Action, &RealTimeCore); // Tarea para accion del PID 
-Task Print_Datos(2000, TASK_FOREVER, &PrintFun, &RealTimeCore); 
+Task Print_Datos(1000, TASK_FOREVER, &PrintFun, &RealTimeCore); 
 // Ahora se deben definir explícitamente las funciones
 
 // Esta función se encarga de leer el valor del potenciómetro Manual
@@ -66,39 +68,51 @@ void Task_M(){
 }
 
 void Task_Action(){ 
+  Task_LeerPotSP();
   Y = analogRead(A1);
   Y = map(Y, 0, 1023, 0, 100);
   U = 0;
   U_pwm = 0;
   if(M <= 200){
+    Task_LeerPotX();
     U_pwm = map(X, 0, 100, 0, 255);
+    analogWrite(9, U_pwm);
+    U = 0;
+    I = 0;
+    I_ant = 0;
+    P = 0;
   }
   else if(M >= 950){
     error = Beta*sp - Y;      // 0< Sp y Y< 100 
     P = kp*(error);
-    I = I_ant + (kp*(ts/ti))*(error);
+    I = I_ant + ((kp*ts)/ti)*(error) + (antiw/tt);
     U = P + I;
-
-  if(U >= 1023){
-    //Sature a 1023 
-    U = 1023;
-    U_pwm = map(U, 0, 1023, 0, 255);
-    analogWrite(13, U_pwm);
-  }else if(U <= 0){
-    //Sature a 0 
-    U = 0;
-    U_pwm = map(U, 0, 1023, 0, 255);
-    analogWrite(13, U_pwm);
-  }else{
-    //Solo escriba
-    U_pwm = map(U, 0, 1023, 0, 255);
-    analogWrite(13, U_pwm);  
+    U_antiw = U;
+    if(U >= 1023){
+      //Sature a 1023 
+      U = 1023;
+      antiw = U - U_antiw;
+      U_pwm = map(U, 0, 1023, 0, 255);
+      analogWrite(9, U_pwm);
+    }else if(U <= 0){
+      //Sature a 0 
+      U = 0;
+      antiw = U - U_antiw;
+      U_pwm = map(U, 0, 1023, 0, 255);
+      analogWrite(9, U_pwm);
+    }else{
+      //Solo escriba
+      U_pwm = map(U, 0, 1023, 0, 255);
+      antiw = U - U_antiw;
+      analogWrite(9, U_pwm);  
+    }
+  
+    I_ant = I;
+    Y_ant = Y;
+    sp_ant = sp;
+    error_ant = error;
   }
 
-  I_ant = I;
-  Y_ant = Y;
-  sp_ant = sp;
-  error_ant = error;
 }
 
 void PrintFun(){
@@ -133,15 +147,15 @@ void setup() {
   
   Serial.println("Se inicializo el Scheduler");
   
-  RealTimeCore.addTask(Task_LeerX); //Se agrega la tarea 01 al scheduler
-  RealTimeCore.addTask(Task_LeerSP); //Se agrega la tarea 02 al scheduler
+//  RealTimeCore.addTask(Task_LeerX); //Se agrega la tarea 01 al scheduler
+//  RealTimeCore.addTask(Task_LeerSP); //Se agrega la tarea 02 al scheduler
   RealTimeCore.addTask(Task_LeerM); //Se agrega la tarea 03 al scheduler
   RealTimeCore.addTask(Action_PID); // Se agrega la tarea de Accion al scheduler
   RealTimeCore.addTask(Print_Datos); // Se agrega la tarea de Accion al scheduler
  
   Serial.println("Se agregaron las tareas al Scheduler");
-  Task_LeerX.enable(); // Se pone el flag de enable para la tarea 01. Por default, las tareas están desabilitadas
-  Task_LeerSP.enable(); // Se pone el flag de enable para la tarea 02. Por default, las tareas están desabilitadas
+//  Task_LeerX.enable(); // Se pone el flag de enable para la tarea 01. Por default, las tareas están desabilitadas
+//  Task_LeerSP.enable(); // Se pone el flag de enable para la tarea 02. Por default, las tareas están desabilitadas
   Task_LeerM.enable();// 
   Action_PID.enable(); // Activo 
   Print_Datos.enable();
