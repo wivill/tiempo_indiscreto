@@ -20,8 +20,9 @@ float Y = 0.0;    // Salida de la Planta
 float Y_ant = 0.0;
 
 // Parametros PID
-const float kp = 0.4696 ;  
+const float kp = 0.4696/2 ;  
 const float ti = 0.0291;
+// const float ti = 0.06;
 const float tt = 0.0146; // para antiwindup
 const float td = 0.0;
 const float ts = 0.01;     // Tiempo de Muestreo (s)
@@ -43,7 +44,7 @@ float antiw = 0.0;
 //Task Task_LeerX(200, TASK_FOREVER, &Task_LeerPotX, &RealTimeCore); //Tarea que se repite cada 1000 milisegundos indefinidamente
 //Task Task_LeerSP(200, TASK_FOREVER, &Task_LeerPotSP, &RealTimeCore); //Tarea que se repite cada 3000 milisegundos indefinidamente
 Task Task_LeerM(500, TASK_FOREVER, &Task_M, &RealTimeCore); //Tarea que se repite sólo tres veces cada 5000 milisegundos
-Task Action_PID(100, TASK_FOREVER, &Task_Action, &RealTimeCore); // Tarea para accion del PID 
+Task Action_PID(50, TASK_FOREVER, &Task_Action, &RealTimeCore); // Tarea para accion del PID 
 Task Print_Datos(1000, TASK_FOREVER, &PrintFun, &RealTimeCore); 
 // Ahora se deben definir explícitamente las funciones
 
@@ -59,8 +60,8 @@ void Task_LeerPotSP(){
 }
 
 void Task_M(){
-  M = analogRead(A3);
-  if (M >= 1000) {
+  M = digitalRead(3);
+  if (M == HIGH) {
     digitalWrite(led, HIGH);
   } else{
     digitalWrite(led, LOW);
@@ -73,7 +74,7 @@ void Task_Action(){
   Y = map(Y, 0, 1023, 0, 100);
   U = 0;
   U_pwm = 0;
-  if(M <= 200){
+  if(M == HIGH){
     Task_LeerPotX();
     U_pwm = map(X, 0, 100, 0, 255);
     analogWrite(9, U_pwm);
@@ -82,28 +83,29 @@ void Task_Action(){
     I_ant = 0;
     P = 0;
   }
-  else if(M >= 950){
+  else if(M == LOW){
     error = Beta*sp - Y;      // 0< Sp y Y< 100 
     P = kp*(error);
-    I = I_ant + ((kp*ts)/ti)*(error) + (antiw/tt);
+    // I = I_ant + ((kp*ts)/ti)*(error) + (antiw/tt);
+    I = I_ant + ((kp*ts)/ti)*(error);
     U = P + I;
     U_antiw = U;
     if(U >= 1023){
       //Sature a 1023 
       U = 1023;
-      antiw = U - U_antiw;
+      // antiw = U - U_antiw;
       U_pwm = map(U, 0, 1023, 0, 255);
       analogWrite(9, U_pwm);
     }else if(U <= 0){
       //Sature a 0 
       U = 0;
-      antiw = U - U_antiw;
+      // antiw = U - U_antiw;
       U_pwm = map(U, 0, 1023, 0, 255);
       analogWrite(9, U_pwm);
     }else{
       //Solo escriba
       U_pwm = map(U, 0, 1023, 0, 255);
-      antiw = U - U_antiw;
+      // antiw = U - U_antiw;
       analogWrite(9, U_pwm);  
     }
   
@@ -117,7 +119,7 @@ void Task_Action(){
 
 void PrintFun(){
   Serial.print("------------------------------------------\n");
-  if(M >= 950){ 
+  if(M == LOW){ 
     Serial.print("Modo Aumatico: \n"); 
   } else {
     Serial.print("Modo Manual: \n"); 
